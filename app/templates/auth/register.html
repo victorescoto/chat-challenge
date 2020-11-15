@@ -1,0 +1,57 @@
+{% extends "layouts/base.html" %}
+{% block title %}Registration{% endblock %}
+
+{% block content %}
+<div class="w-full mx-auto max-w-xs h-full flex justify-center items-center">
+    <form method="POST" action="{{ url_for('main.create_user') }}" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-4 text-center">
+            <h1 class="text-xl text-gray-700">Jobsity Challenge - Chat</h1>
+        </div>
+
+        <hr class="my-4" />
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                {{ form.username.label }}
+            </label>
+            <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {{ 'border-red-500 mb-3' if form.username.errors else '' }}"
+                id="username" name="username" type="text" placeholder="Username" value="{{ form.username.data if form.username.data != None }}">
+
+            {% for error in form.username.errors %}<p class="text-red-500 text-xs italic">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                {{ form.password.label }}
+            </label>
+            <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {{ 'border-red-500 mb-3' if form.password.errors else '' }}"
+                id="password" type="password" name="password" placeholder="******************">
+            {% for error in form.password.errors %}<p class="text-red-500 text-xs italic">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm">
+                {{ form.confirm.label }}
+            </label>
+            <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline {{ 'border-red-500 mb-3' if form.password.errors else '' }}"
+                id="confirm" type="password" name="confirm" placeholder="******************">
+        </div>
+
+        <div class="flex items-center justify-between">
+            <button
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit">
+                Submit
+            </button>
+            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{{ url_for('main.login') }}">
+                Login page
+            </a>
+        </div>
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+</div>
+{% endblock %}

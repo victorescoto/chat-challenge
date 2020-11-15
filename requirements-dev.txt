@@ -1,0 +1,6 @@
+-r requirements.txt
+
+black==19.10b0
+coverage==5.3
+ipdb==0.13.4
+python-dotenv==0.15.0

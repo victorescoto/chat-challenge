@@ -1,0 +1,122 @@
+{% extends "layouts/logged_in.html" %}
+{% block title %}Chat Rooms{% endblock %}
+
+{% block content_title %}Chatroom: <span class="font-bold">{{ chatroom.name }}</span>{% endblock %}
+
+{% block content_body %}
+<div id="messages" class="border rounded w-full h-64 divide-y divide-gray-400 overflow-y-scroll px-3">
+    {% for message in messages %}
+    <div class="py-3 text-gray-700 {{ 'text-right' if current_user.id == message.author.id else '' }}">
+        <div class="mb-2">
+            <span class="font-bold">{{ message.author.username }}</span> <span class="text-gray-500">-
+                {{ message.created_at }}</span>
+        </div>
+
+        <div class="content">{{ message.content }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div>
+    <input
+        class="mt-6 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        id="message" type="text" placeholder="Send a message" autofocus>
+</div>
+
+<div class="mt-5 text-left">
+    <button id="leave-room" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Leave room</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+<script>
+    function getMessageTemplate(message) {
+        const currentUserId = "{{ current_user.id }}";
+
+        return `
+        <div class="py-3 text-gray-700 ${message.author.id == currentUserId ? 'text-right' : ''}">
+            <div class="mb-2">
+                <span class="font-bold">${message.author.username}</span> <span class="text-gray-500">- ${message.createdAt}</span>
+            </div>
+            <div class="content">${message.content}</div>
+        </div>
+        `;
+    }
+
+    function getStatusMessageTemplate(content) {
+        return `
+        <div class="py-3 text-gray-500">
+            <div class="content text-center">${content}</div>
+        </div>
+        `;
+    }
+
+    window.onload = function () {
+        const messagesContainer = document.querySelector("#messages");
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        scrollToBottom();
+
+        function cleanOldMessages() {
+            while (messagesContainer.childElementCount > 50) {
+                messagesContainer.removeChild(messagesContainer.firstChild);
+              }
+        }
+
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function () {
+            socket.emit('joined', {
+                chatroom: "{{ chatroom.id }}"
+            });
+        });
+
+        socket.on('status', function (data) {
+            messagesContainer.insertAdjacentHTML(
+                "beforeend",
+                getStatusMessageTemplate(data.msg)
+            );
+
+            scrollToBottom();
+            cleanOldMessages();
+
+            if (data.type === "join") {
+                socket.emit('listen_message_broker', {});
+            }
+        });
+
+        socket.on('message', function (data) {
+            messagesContainer.insertAdjacentHTML(
+                "beforeend",
+                getMessageTemplate(data)
+            );
+
+            scrollToBottom();
+            cleanOldMessages();
+        });
+
+        socket.on('disconnect', function () {
+            console.log('disconnect');
+        });
+
+        document.querySelector('#leave-room').addEventListener('click', function () {
+            socket.emit('left', {}, function () {
+                socket.disconnect();
+                window.location.href = "{{ url_for('main.list_chatrooms') }}";
+            });
+        });
+
+        document.querySelector('#message').addEventListener('keypress', function (e) {
+            const key = e.keyCode || e.which;
+            if (key === 13) {
+                socket.emit('text', {
+                    content: e.target.value
+                });
+                e.target.value = ''
+            }
+        });
+    };
+</script>
+{% endblock %}
