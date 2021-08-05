@@ -11,7 +11,7 @@ services:
       - rabbitmq
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3.8.3-management-alpine
     container_name: rabbitmq-management
     volumes:
       - ./.docker/rabbitmq/data/:/var/lib/rabbitmq/
